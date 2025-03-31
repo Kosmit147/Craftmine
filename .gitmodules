@@ -1,0 +1,4 @@
+[submodule "Zenith"]
+	path = dependencies/Zenith
+	url = https://github.com/Kosmit147/Zenith.git
+	branch = main
