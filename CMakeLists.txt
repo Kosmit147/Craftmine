@@ -19,7 +19,8 @@ endif()
 add_executable(
 	craftmine
 	"src/application.cpp"
-	"src/scene.cpp"
+	"src/main_layer.cpp"
+	"src/main_scene.cpp"
 )
 
 if(CMAKE_CXX_COMPILER_ID MATCHES ".*GNU.*")

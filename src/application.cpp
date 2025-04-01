@@ -1,11 +1,11 @@
 #include "application.hpp"
 
-#include "scene.hpp"
+#include "main_layer.hpp"
+#include "main_scene.hpp"
 
-// @todo: Fix ::
-ZTH_IMPLEMENT_APP(::Application)
+ZTH_IMPLEMENT_APP(Application)
 
-const zth::ApplicationSpec app_spec = {
+const zth::ApplicationSpec application_spec = {
     .window_spec = {
         .size = { 800, 600 },
         .title = "Craftmine",
@@ -22,7 +22,8 @@ const zth::ApplicationSpec app_spec = {
     },
 };
 
-Application::Application() : zth::Application(app_spec)
+Application::Application() : zth::Application(application_spec)
 {
-    zth::SceneManager::load_scene(std::make_unique<Scene>());
+    push_layer(std::make_unique<MainLayer>());
+    zth::SceneManager::queue_scene(std::make_unique<MainScene>());
 }
