@@ -1,6 +1,6 @@
-#include "scene.hpp"
+#include "main_scene.hpp"
 
-Scene::Scene()
+MainScene::MainScene()
 {
     _camera.emplace<zth::CameraComponent>(zth::Window::aspect_ratio());
     _camera.emplace<zth::ScriptComponent>(std::make_unique<zth::scripts::FlyCamera>());
@@ -17,18 +17,9 @@ Scene::Scene()
     directional_light_transform.set_direction(glm::vec3{ -0.35f, -1.0f, -0.35 });
 }
 
-auto Scene::on_event(const zth::Event& event) -> void
+auto MainScene::on_event(const zth::Event& event) -> void
 {
-    if (event.type() == zth::EventType::KeyPressed)
-    {
-        auto [key] = event.key_pressed_event();
-
-        if (key == zth::Key::Escape)
-            zth::Window::close();
-        else if (key == zth::Key::LeftControl)
-            zth::Window::set_cursor_enabled(!zth::Window::cursor_enabled());
-    }
-    else if (event.type() == zth::EventType::WindowResized)
+    if (event.type() == zth::EventType::WindowResized)
     {
         auto [new_size] = event.window_resized_event();
 

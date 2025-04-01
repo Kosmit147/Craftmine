@@ -1,11 +1,11 @@
 #pragma once
 
-class Scene : public zth::Scene
+class MainScene : public zth::Scene
 {
 public:
-    explicit Scene();
-    ZTH_NO_COPY_NO_MOVE(Scene)
-    ~Scene() override = default;
+    explicit MainScene();
+    ZTH_NO_COPY_NO_MOVE(MainScene)
+    ~MainScene() override = default;
 
 private:
     zth::EntityHandle _camera = create_entity("Camera");
