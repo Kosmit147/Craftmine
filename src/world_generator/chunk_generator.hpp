@@ -1,13 +1,11 @@
-#ifndef CHUNK_GENERATOR_H
-#define CHUNK_GENERATOR_H
+#pragma once
 
 #include <cstdint>
-#include <glm/glm.hpp>
 #include <vector>
 
-constexpr int CHUNK_WIDTH = 16;
-constexpr int CHUNK_HEIGHT = 256;
-constexpr int CHUNK_DEPTH = 16;
+constexpr int chunk_width = 16;
+constexpr int chunk_height = 256;
+constexpr int chunk_depth = 16;
 
 enum class BlockType : uint8_t
 {
@@ -29,5 +27,3 @@ private:
     int seed;
     float get_height(float worldX, float worldZ) const;
 };
-
-#endif // CHUNK_GENERATOR_H

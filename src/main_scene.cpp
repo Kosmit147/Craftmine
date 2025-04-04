@@ -1,6 +1,5 @@
 #include "main_scene.hpp"
 
-
 MainScene::MainScene()
 {
     _camera.emplace<zth::CameraComponent>(zth::Window::aspect_ratio());
@@ -9,12 +8,8 @@ MainScene::MainScene()
     _directional_light.emplace<zth::LightComponent>(zth::DirectionalLight{});
     generate_world(3, 3);
 
-
-    auto& camera_transform = _camera.get<zth::TransformComponent>();
-    auto& directional_light_transform = _directional_light.get<zth::TransformComponent>();
-
-    camera_transform.set_translation(glm::vec3{ 0.0f, 90.0f, 5.0f });
-    directional_light_transform.set_direction(glm::vec3{ -0.35f, -1.0f, -0.35 });
+    _camera.transform().set_translation(glm::vec3{ 0.0f, 90.0f, 5.0f });
+    _directional_light.transform().set_direction(glm::vec3{ -0.35f, -1.0f, -0.35 });
 }
 
 auto MainScene::on_event(const zth::Event& event) -> void
@@ -38,18 +33,18 @@ void MainScene::generate_world(int worldWidth, int worldDepth)
         {
             ChunkData chunk = generator.generate_chunk(chunkX, chunkZ);
 
-            generate_entities(chunk,chunkX,chunkZ);
+            generate_entities(chunk, chunkX, chunkZ);
         }
     }
 }
 
 void MainScene::generate_entities(ChunkData& chunk, int chunkX, int chunkZ)
 {
-    for (int x = 0; x < CHUNK_WIDTH; ++x)
+    for (int x = 0; x < chunk_width; ++x)
     {
-        for (int z = 0; z < CHUNK_DEPTH; ++z)
+        for (int z = 0; z < chunk_depth; ++z)
         {
-            for (int y = 0; y < CHUNK_HEIGHT; ++y)
+            for (int y = 0; y < chunk_height; ++y)
             {
                 BlockType type = chunk[x][z][y];
                 if (type == BlockType::Air)
@@ -60,12 +55,9 @@ void MainScene::generate_entities(ChunkData& chunk, int chunkX, int chunkZ)
                 cube.emplace<zth::MeshComponent>(&zth::meshes::cube_mesh());
                 cube.emplace<zth::MaterialComponent>(&_cube_material);
 
-                auto& transform = cube.get<zth::TransformComponent>();
-                transform.set_translation(glm::vec3{
-                    static_cast<float>(chunkX * CHUNK_WIDTH + x),
-                    static_cast<float>(y),                       
-                    static_cast<float>(chunkZ * CHUNK_DEPTH + z) 
-                });
+                cube.transform().set_translation(glm::vec3{ static_cast<float>(chunkX * chunk_width + x),
+                                                            static_cast<float>(y),
+                                                            static_cast<float>(chunkZ * chunk_depth + z) });
             }
         }
     }
