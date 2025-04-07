@@ -6,47 +6,40 @@ MainScene::MainScene()
     _camera.emplace<zth::ScriptComponent>(std::make_unique<zth::scripts::FlyCamera>());
 
     _directional_light.emplace<zth::LightComponent>(zth::DirectionalLight{});
-    generate_world(3, 3);
+    _directional_light.transform().set_direction(glm::normalize(glm::vec3{ -0.35f, -1.0f, -0.35f }));
 
     _camera.transform().set_translation(glm::vec3{ 0.0f, 90.0f, 5.0f });
-    _directional_light.transform().set_direction(glm::vec3{ -0.35f, -1.0f, -0.35 });
+
+    ChunkGenerator::init(1234);
+    generate_world(3, 3);
 }
 
-auto MainScene::on_event(const zth::Event& event) -> void
+auto MainScene::generate_world(u32 x_chunks, u32 z_chunks) -> void
 {
-    if (event.type() == zth::EventType::WindowResized)
+    for (u32 x = 0; x < x_chunks; x++)
     {
-        auto [new_size] = event.window_resized_event();
-
-        auto& camera = _camera.get<zth::CameraComponent>();
-        camera.aspect_ratio = static_cast<float>(new_size.x) / static_cast<float>(new_size.y);
-    }
-}
-
-void MainScene::generate_world(int worldWidth, int worldDepth)
-{
-    ChunkGenerator generator(1234);
-
-    for (int chunkX = 0; chunkX < worldWidth; ++chunkX)
-    {
-        for (int chunkZ = 0; chunkZ < worldDepth; ++chunkZ)
+        for (u32 z = 0; z < z_chunks; z++)
         {
-            ChunkData chunk = generator.generate_chunk(chunkX, chunkZ);
-
-            generate_entities(chunk, chunkX, chunkZ);
+            auto& chunk = _chunks.emplace_back(ChunkGenerator::generate(x, z));
+            generate_entities(*chunk, x, z);
         }
     }
 }
 
-void MainScene::generate_entities(ChunkData& chunk, int chunkX, int chunkZ)
+auto MainScene::generate_entities(Chunk& chunk, u32 chunk_x, u32 chunk_z) -> void
 {
-    for (int x = 0; x < chunk_width; ++x)
+    auto& chunk_size = Chunk::size;
+
+    for (u32 x = 0; x < chunk_size.x; ++x)
     {
-        for (int z = 0; z < chunk_depth; ++z)
+        for (u32 z = 0; z < chunk_size.z; ++z)
         {
-            for (int y = 0; y < chunk_height; ++y)
+            for (u32 y = 0; y < chunk_size.y; ++y)
             {
-                BlockType type = chunk[x][z][y];
+                auto view = chunk.view_3d();
+
+                BlockType type = view[x, y, z];
+
                 if (type == BlockType::Air)
                     continue;
 
@@ -55,9 +48,9 @@ void MainScene::generate_entities(ChunkData& chunk, int chunkX, int chunkZ)
                 cube.emplace<zth::MeshComponent>(&zth::meshes::cube_mesh());
                 cube.emplace<zth::MaterialComponent>(&_cube_material);
 
-                cube.transform().set_translation(glm::vec3{ static_cast<float>(chunkX * chunk_width + x),
+                cube.transform().set_translation(glm::vec3{ static_cast<float>(chunk_x * chunk_size.x + x),
                                                             static_cast<float>(y),
-                                                            static_cast<float>(chunkZ * chunk_depth + z) });
+                                                            static_cast<float>(chunk_z * chunk_size.z + z) });
             }
         }
     }

@@ -21,8 +21,8 @@ add_executable(
 	"src/application.cpp"
 	"src/main_layer.cpp"
 	"src/main_scene.cpp"
-	"src/world_generator/chunk_generator.cpp"
-   )
+	"src/world/chunk.cpp"
+)
 
 if(CMAKE_CXX_COMPILER_ID MATCHES ".*GNU.*")
 	target_link_libraries(craftmine PRIVATE -lstdc++exp)
