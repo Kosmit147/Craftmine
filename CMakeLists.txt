@@ -23,6 +23,7 @@ add_executable(
 	"src/application.cpp"
 	"src/main_layer.cpp"
 	"src/main_scene.cpp"
+	"src/assets.cpp"
 )
 
 if(CMAKE_CXX_COMPILER_ID MATCHES ".*GNU.*")
@@ -40,3 +41,4 @@ set_property(TARGET craftmine PROPERTY COMPILE_WARNING_AS_ERROR On)
 add_subdirectory("dependencies/Zenith")
 
 target_link_libraries(craftmine PRIVATE zenith)
+b_embed(craftmine "assets/textures/blocks.png")
