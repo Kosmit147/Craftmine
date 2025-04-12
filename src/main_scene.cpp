@@ -2,11 +2,19 @@
 
 #include <future>
 
+#include "assets.hpp"
 #include "scripts/player.hpp"
+
+MainScene::MainScene()
+    : _blocks_texture{ blocks_texture_data,
+                       zth::gl::TextureParams{ .mag_filter = zth::gl::TextureMagFilter::nearest } },
+      _chunk_material{ .diffuse_map = &_blocks_texture }
+{}
 
 auto MainScene::on_load() -> void
 {
-    zth::Renderer::set_clear_color(glm::vec4(110.0f/255.0f, 177.0f/255.0f, 1.0f,1.0f));
+    zth::Renderer::set_clear_color(sky_color);
+
     _camera.emplace<zth::CameraComponent>(zth::CameraComponent{
         .aspect_ratio = zth::Window::aspect_ratio(),
         .fov = glm::radians(45.0f),
@@ -131,5 +139,5 @@ auto MainScene::create_chunk_entity(const Chunk& chunk, i32 chunk_x, i32 chunk_z
     entity.transform().set_translation(world_position);
 
     entity.emplace_or_replace<zth::MeshComponent>(&chunk.mesh());
-    entity.emplace_or_replace<zth::MaterialComponent>(&_block_material);
+    entity.emplace_or_replace<zth::MaterialComponent>(&_chunk_material);
 }

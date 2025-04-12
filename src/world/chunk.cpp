@@ -2,15 +2,13 @@
 
 #include <glm/gtx/structured_bindings.hpp>
 
-#include <print>
+#include "atlas.hpp"
 
 namespace {
 
 constexpr usize indices_per_quad = 6;
 constexpr usize vertices_per_quad = 4;
 constexpr std::array<u32, indices_per_quad> single_quad_indices = { 0, 1, 2, 0, 2, 3 };
-constexpr usize atlas_rows = 4;
-constexpr usize atlas_columns = 4;
 
 auto generate_quad_indices(u32 quad_count) -> zth::Vector<u32>
 {
@@ -37,13 +35,7 @@ struct Face
 
     glm::vec3 normal;
 
-    auto operator[](usize index) -> glm::vec3&
-    {
-        ZTH_ASSERT(index <= 3);
-        return (&top_left)[index];
-    }
-
-    auto operator[](usize index) const -> const glm::vec3&
+    auto operator[](usize index) const -> glm::vec3
     {
         ZTH_ASSERT(index <= 3);
         return (&top_left)[index];
@@ -104,59 +96,23 @@ constexpr Face up_face = {
     .normal = zth::math::world_up,
 };
 
-struct BlockTextureCoordinates
+constexpr TextureAtlas blocks_texture_atlas{ 4, 4 };
+
+auto get_block_texture_index(Block block, BlockFacing facing) -> usize
 {
-    glm::vec2 top_left;     // 0
-    glm::vec2 bottom_left;  // 1
-    glm::vec2 bottom_right; // 2
-    glm::vec2 top_right;    // 3
-
-    auto operator[](usize index) -> glm::vec2&
-    {
-        ZTH_ASSERT(index <= 3);
-        return (&top_left)[index];
-    }
-
-    auto operator[](usize index) const -> const glm::vec2&
-    {
-        ZTH_ASSERT(index <= 3);
-        return (&top_left)[index];
-    }
-};
-
-auto get_block_texture_coordinates(Block block, BlockFacing facing) -> BlockTextureCoordinates
-{
-    (void)block;
-    (void)facing;
-
-    // @todo: Implement this function.
-    float y_step = 1.0f / atlas_columns;
-    float x_step = 1.0f / atlas_rows;
+    (void)facing; // @todo: Facing.
 
     switch (block)
     {
-    case Block::Stone:
-        return BlockTextureCoordinates{
-            .top_left = glm::vec2{ 0.0f, y_step * 4 },
-            .bottom_left = glm::vec2{ 0.0f, y_step * 3 },
-            .bottom_right = glm::vec2{ x_step, y_step * 3 },
-            .top_right = glm::vec2{ x_step, y_step * 4},
-        };
-    case Block::Dirt:
-        return BlockTextureCoordinates{
-            .top_left = glm::vec2{ x_step * 3, y_step * 4 },
-            .bottom_left = glm::vec2{ x_step * 3, y_step * 3 },
-            .bottom_right = glm::vec2{ x_step * 4, y_step * 3 },
-            .top_right = glm::vec2{ x_step * 4, y_step * 4 },
-        };
-    case Block::Grass:
-        return BlockTextureCoordinates{
-            .top_left = glm::vec2{ x_step * 2, y_step * 4 },
-            .bottom_left = glm::vec2{ x_step * 2, y_step * 3 },
-            .bottom_right = glm::vec2{ x_step * 3, y_step * 3 },
-            .top_right = glm::vec2{ x_step * 3, y_step * 4 },
-        };
+        using enum Block;
+    case Grass:
+        return 2;
+    case Dirt:
+        return 3;
+    case Stone:
+        return 0;
     }
+
     ZTH_ASSERT(false);
     std::unreachable();
 }
@@ -185,7 +141,7 @@ auto get_face(BlockFacing facing) -> const Face&
 
 auto append_single_face_vertices(ChunkMesh& mesh, Block block, BlockFacing facing, glm::ivec3 coordinates) -> void
 {
-    auto tex_coords = get_block_texture_coordinates(block, facing);
+    auto tex_coords = blocks_texture_atlas[get_block_texture_index(block, facing)];
     auto& face = get_face(facing);
 
     for (usize i = 0; i < vertices_per_quad; i++)
