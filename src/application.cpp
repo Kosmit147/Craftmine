@@ -20,6 +20,9 @@ const zth::ApplicationSpec application_spec = {
         .transparent_framebuffer = false,
         .forced_aspect_ratio = zth::nil,
     },
+    .logger_spec = {
+        .client_logger_label = "CRAFTMINE",
+    }
 };
 
 Application::Application() : zth::Application(application_spec)
