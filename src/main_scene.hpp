@@ -5,21 +5,20 @@
 class MainScene : public zth::Scene
 {
 public:
-    explicit MainScene();
+    explicit MainScene() = default;
     ZTH_NO_COPY_NO_MOVE(MainScene)
     ~MainScene() override = default;
 
 private:
     zth::EntityHandle _camera = create_entity("Camera");
     zth::EntityHandle _directional_light = create_entity("Directional Light");
-    zth::Material _cube_material;
-    zth::Material _grass_material;
-    zth::Material _dirt_material;
-    zth::Material _stone_material;
 
-    zth::Vector<std::unique_ptr<Chunk>> _chunks;
+    zth::Material _block_material;
+    zth::Vector<Chunk> _chunks;
 
 private:
-    auto generate_world(u32 x_chunks, u32 z_chunks) -> void;
-    auto generate_entities(Chunk& chunk, u32 chunk_x, u32 chunk_z) -> void;
+    auto on_load() -> void override;
+
+    auto generate_world(i32 x_chunks, i32 z_chunks) -> void;
+    auto create_chunk_entity(const Chunk& chunk, i32 chunk_x, i32 chunk_z) -> void;
 };

@@ -18,10 +18,11 @@ endif()
 
 add_executable(
 	craftmine
+	"src/scripts/player.cpp"
+	"src/world/chunk.cpp"
 	"src/application.cpp"
 	"src/main_layer.cpp"
 	"src/main_scene.cpp"
-	"src/world/chunk.cpp"
 )
 
 if(CMAKE_CXX_COMPILER_ID MATCHES ".*GNU.*")
@@ -30,6 +31,7 @@ endif()
 
 get_compile_warnings(CRAFTMINE_COMPILE_WARNINGS)
 
+target_include_directories(craftmine PRIVATE "src")
 target_compile_features(craftmine PRIVATE cxx_std_23)
 target_compile_options(craftmine PRIVATE ${CRAFTMINE_COMPILE_WARNINGS})
 target_precompile_headers(craftmine PRIVATE "src/pch.hpp")
