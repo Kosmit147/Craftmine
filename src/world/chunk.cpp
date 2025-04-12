@@ -246,16 +246,16 @@ auto Chunk::at(glm::ivec3 coordinates) const -> zth::Optional<Block>
 
 auto Chunk::operator[](glm::ivec3 coordinates) -> Block&
 {
+    ZTH_ASSERT(valid_coordinates(coordinates));
     auto [x, y, z] = coordinates;
-    ZTH_ASSERT(valid_coordinates(x, y, z));
     std::mdspan view{ _blocks->data(), chunk_size.x, chunk_size.y, chunk_size.z };
     return view[x, y, z];
 }
 
 auto Chunk::operator[](glm::ivec3 coordinates) const -> const Block&
 {
+    ZTH_ASSERT(valid_coordinates(coordinates));
     auto [x, y, z] = coordinates;
-    ZTH_ASSERT(valid_coordinates(x, y, z));
     std::mdspan view{ _blocks->data(), chunk_size.x, chunk_size.y, chunk_size.z };
     return view[x, y, z];
 }
