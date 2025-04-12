@@ -20,6 +20,7 @@ add_executable(
 	craftmine
 	"src/scripts/player.cpp"
 	"src/world/chunk.cpp"
+	"src/world/world.cpp"
 	"src/application.cpp"
 	"src/main_layer.cpp"
 	"src/main_scene.cpp"

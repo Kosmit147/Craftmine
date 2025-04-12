@@ -317,14 +317,14 @@ auto Chunk::valid_coordinates(glm::ivec3 coordinates) -> bool
     return false;
 }
 
-auto ChunkGenerator::generate(i32 chunk_x, i32 chunk_z) -> std::unique_ptr<ChunkData>
+auto ChunkGenerator::generate(ChunkPosition position) -> std::unique_ptr<ChunkData>
 {
     // std::make_unique_for_overwrite doesn't initialize the data, and we're going to overwrite all of it anyway.
     std::unique_ptr<ChunkData> blocks = std::make_unique_for_overwrite<ChunkData>();
     std::mdspan view{ blocks->data(), chunk_size.x, chunk_size.y, chunk_size.z };
 
-    auto chunk_start_x = Chunk::to_world_x(chunk_x);
-    auto chunk_start_z = Chunk::to_world_z(chunk_z);
+    auto chunk_start_x = Chunk::to_world_x(position.x);
+    auto chunk_start_z = Chunk::to_world_z(position.z);
 
     for (i32 x = 0; x < chunk_size.x; x++)
     {

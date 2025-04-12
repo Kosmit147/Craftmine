@@ -26,6 +26,26 @@ inline auto operator&=(BlockFacing& lhs, BlockFacing rhs) -> BlockFacing& { retu
 constexpr glm::ivec3 chunk_size{ 16, 256, 16 };
 constexpr i32 blocks_in_chunk = chunk_size.x * chunk_size.y * chunk_size.z;
 
+struct ChunkPosition
+{
+    i32 x;
+    i32 z;
+
+    [[nodiscard]] auto operator==(const ChunkPosition&) const -> bool = default;
+};
+
+template<> struct std::hash<ChunkPosition>
+{
+    auto operator()(const ChunkPosition& pos) const noexcept -> std::size_t
+    {
+        auto h1 = std::hash<unsigned int>{}(pos.x);
+        auto h2 = std::hash<unsigned int>{}(pos.z);
+
+        // Similar to boost::hash_combine.
+        return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+    }
+};
+
 using ChunkData = std::array<Block, blocks_in_chunk>;
 
 struct ChunkMesh
@@ -38,6 +58,9 @@ class Chunk
 {
 public:
     explicit Chunk(std::unique_ptr<ChunkData>&& blocks);
+
+    ZTH_NO_COPY(Chunk)
+    ZTH_DEFAULT_MOVE(Chunk)
 
     auto generate_mesh() const -> ChunkMesh;
     auto upload_mesh(const ChunkMesh& mesh) -> void;
@@ -71,7 +94,7 @@ public:
 public:
     ChunkGenerator() = delete;
 
-    static auto generate(i32 chunk_x, i32 chunk_z) -> std::unique_ptr<ChunkData>;
+    static auto generate(ChunkPosition position) -> std::unique_ptr<ChunkData>;
 
 private:
     static auto get_height(i32 world_x, i32 world_z) -> i32;
