@@ -9,6 +9,8 @@ namespace {
 constexpr usize indices_per_quad = 6;
 constexpr usize vertices_per_quad = 4;
 constexpr std::array<u32, indices_per_quad> single_quad_indices = { 0, 1, 2, 0, 2, 3 };
+constexpr usize atlas_rows = 4;
+constexpr usize atlas_columns = 4;
 
 auto generate_quad_indices(u32 quad_count) -> zth::Vector<u32>
 {
@@ -128,13 +130,35 @@ auto get_block_texture_coordinates(Block block, BlockFacing facing) -> BlockText
     (void)facing;
 
     // @todo: Implement this function.
+    float y_step = 1.0f / atlas_columns;
+    float x_step = 1.0f / atlas_rows;
 
-    return BlockTextureCoordinates{
-        .top_left = glm::vec2{ 0.0f },
-        .bottom_left = glm::vec2{ 0.0f },
-        .bottom_right = glm::vec2{ 0.0f },
-        .top_right = glm::vec2{ 0.0f },
-    };
+    switch (block)
+    {
+    case Block::Stone:
+        return BlockTextureCoordinates{
+            .top_left = glm::vec2{ 0.0f, y_step * 4 },
+            .bottom_left = glm::vec2{ 0.0f, y_step * 3 },
+            .bottom_right = glm::vec2{ x_step, y_step * 3 },
+            .top_right = glm::vec2{ x_step, y_step * 4},
+        };
+    case Block::Dirt:
+        return BlockTextureCoordinates{
+            .top_left = glm::vec2{ x_step * 3, y_step * 4 },
+            .bottom_left = glm::vec2{ x_step * 3, y_step * 3 },
+            .bottom_right = glm::vec2{ x_step * 4, y_step * 3 },
+            .top_right = glm::vec2{ x_step * 4, y_step * 4 },
+        };
+    case Block::Grass:
+        return BlockTextureCoordinates{
+            .top_left = glm::vec2{ x_step * 2, y_step * 4 },
+            .bottom_left = glm::vec2{ x_step * 2, y_step * 3 },
+            .bottom_right = glm::vec2{ x_step * 3, y_step * 3 },
+            .top_right = glm::vec2{ x_step * 3, y_step * 4 },
+        };
+    }
+    ZTH_ASSERT(false);
+    std::unreachable();
 }
 
 auto get_face(BlockFacing facing) -> const Face&

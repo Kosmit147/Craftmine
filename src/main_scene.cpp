@@ -6,6 +6,7 @@
 
 auto MainScene::on_load() -> void
 {
+    zth::Renderer::set_clear_color(glm::vec4(110.0f/255.0f, 177.0f/255.0f, 1.0f,1.0f));
     _camera.emplace<zth::CameraComponent>(zth::CameraComponent{
         .aspect_ratio = zth::Window::aspect_ratio(),
         .fov = glm::radians(45.0f),
