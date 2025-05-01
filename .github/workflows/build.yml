@@ -18,10 +18,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        config:
-          - { name: Debug, build_type: Debug, flags: -DZTH_DIST_BUILD=FALSE }
-          - { name: Release, build_type: RelWithDebInfo, flags: -DZTH_DIST_BUILD=FALSE }
-          - { name: Dist, build_type: Release, flags: -DZTH_DIST_BUILD=TRUE }
+        config: # Values based on presets defined in CMakePresets.json
+          - { name: debug, build_type: Debug, flags: -DZTH_ASSERTIONS=TRUE -DZTH_GL_DEBUG=TRUE -DZTH_DEBUG_LOGGING=TRUE }
+          - { name: optimized-debug, build_type: RelWithDebInfo, flags: -DZTH_ASSERTIONS=TRUE -DZTH_GL_DEBUG=TRUE -DZTH_DEBUG_LOGGING=TRUE }
+          - { name: development, build_type: RelWithDebInfo, flags: -DZTH_ASSERTIONS=FALSE -DZTH_GL_DEBUG=TRUE -DZTH_DEBUG_LOGGING=TRUE }
+          - { name: release-with-deb-info, build_type: RelWithDebInfo, flags: -DZTH_ASSERTIONS=FALSE -DZTH_GL_DEBUG=FALSE -DZTH_DEBUG_LOGGING=FALSE }
+          - { name: release, build_type: Release, flags: -DZTH_ASSERTIONS=FALSE -DZTH_GL_DEBUG=FALSE -DZTH_DEBUG_LOGGING=FALSE }
 
     steps:
     - name: Checkout

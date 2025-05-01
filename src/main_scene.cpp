@@ -12,7 +12,7 @@ auto MainScene::on_load() -> void
         .far = 1000.0f,
     });
 
-    _camera.emplace<zth::ScriptComponent>(std::make_unique<scripts::Player>());
+    _camera.emplace<zth::ScriptComponent>(zth::make_unique<scripts::Player>());
 
     _directional_light.emplace<zth::LightComponent>(zth::DirectionalLight{});
     _directional_light.transform().set_direction(glm::normalize(glm::vec3{ -0.35f, -1.0f, -0.35f }));

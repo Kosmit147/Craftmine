@@ -57,7 +57,7 @@ struct ChunkMesh
 class Chunk
 {
 public:
-    explicit Chunk(std::unique_ptr<ChunkData>&& blocks);
+    explicit Chunk(zth::UniquePtr<ChunkData>&& blocks);
 
     ZTH_NO_COPY(Chunk)
     ZTH_DEFAULT_MOVE(Chunk)
@@ -75,8 +75,8 @@ public:
     auto mesh() const -> const auto& { return _mesh; }
 
 private:
-    std::unique_ptr<ChunkData> _blocks;
-    zth::Mesh _mesh;
+    zth::UniquePtr<ChunkData> _blocks;
+    std::shared_ptr<zth::Mesh> _mesh;
 
 private:
     auto visible_faces_for_block(glm::ivec3 coordinates) const -> BlockFacing;
@@ -94,7 +94,7 @@ public:
 public:
     ChunkGenerator() = delete;
 
-    static auto generate(ChunkPosition position) -> std::unique_ptr<ChunkData>;
+    static auto generate(ChunkPosition position) -> zth::UniquePtr<ChunkData>;
 
 private:
     static auto get_height(i32 world_x, i32 world_z) -> i32;

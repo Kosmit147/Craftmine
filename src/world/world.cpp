@@ -3,13 +3,13 @@
 #include <future>
 
 std::unordered_map<ChunkPosition, Chunk> World::_world;
-std::unique_ptr<zth::Material> World::_chunk_material;
+std::shared_ptr<zth::Material> World::_chunk_material;
 zth::Scene* World::_scene = nullptr;
 
 auto World::init(zth::Scene& scene) -> void
 {
     _scene = &scene;
-    _chunk_material = std::make_unique<zth::Material>();
+    _chunk_material = std::make_shared<zth::Material>();
 
     generate(50, 50);
 }
@@ -40,7 +40,7 @@ auto World::generate(i32 x_chunks, i32 z_chunks) -> void
         zth::Timer timer;
 
 #if MULTI_THREADED
-        zth::TemporaryVector<std::future<std::pair<ChunkPosition, std::unique_ptr<ChunkData>>>> futures;
+        zth::TemporaryVector<std::future<std::pair<ChunkPosition, zth::UniquePtr<ChunkData>>>> futures;
         futures.reserve(chunk_count);
 
         for (auto [x, z] : coords)
@@ -147,6 +147,6 @@ auto World::create_chunk_entity(const Chunk& chunk, ChunkPosition position) -> v
     auto world_position = glm::vec3{ Chunk::to_world_x(position.x), 0.0f, Chunk::to_world_z(position.z) };
     entity.transform().set_translation(world_position);
 
-    entity.emplace_or_replace<zth::MeshComponent>(&chunk.mesh());
-    entity.emplace_or_replace<zth::MaterialComponent>(&*_chunk_material);
+    entity.emplace_or_replace<zth::MeshComponent>(chunk.mesh());
+    entity.emplace_or_replace<zth::MaterialComponent>(_chunk_material);
 }

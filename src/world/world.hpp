@@ -13,7 +13,7 @@ public:
 private:
     static std::unordered_map<ChunkPosition, Chunk> _world;
 
-    static std::unique_ptr<zth::Material> _chunk_material;
+    static std::shared_ptr<zth::Material> _chunk_material;
     static zth::Scene* _scene;
 
 private:

@@ -204,7 +204,7 @@ auto append_block_vertices(ChunkMesh& mesh, Block block, BlockFacing facing, glm
 
 } // namespace
 
-Chunk::Chunk(std::unique_ptr<ChunkData>&& blocks) : _blocks(std::move(blocks)) {}
+Chunk::Chunk(zth::UniquePtr<ChunkData>&& blocks) : _blocks(std::move(blocks)) {}
 
 auto Chunk::generate_mesh() const -> ChunkMesh
 {
@@ -233,7 +233,7 @@ auto Chunk::upload_mesh(const ChunkMesh& mesh) -> void
     usize indices_count = mesh.faces * indices_per_quad;
     ZTH_ASSERT(indices_count <= quad_indices.size());
     std::span indices{ quad_indices.begin(), std::next(quad_indices.begin(), static_cast<isize>(indices_count)) };
-    _mesh = zth::Mesh{ mesh.vertices, zth::StandardVertex::layout, indices };
+    _mesh = std::make_shared<zth::Mesh>(mesh.vertices, zth::StandardVertex::layout, indices);
 }
 
 auto Chunk::at(glm::ivec3 coordinates) const -> zth::Optional<Block>
@@ -317,10 +317,10 @@ auto Chunk::valid_coordinates(glm::ivec3 coordinates) -> bool
     return false;
 }
 
-auto ChunkGenerator::generate(ChunkPosition position) -> std::unique_ptr<ChunkData>
+auto ChunkGenerator::generate(ChunkPosition position) -> zth::UniquePtr<ChunkData>
 {
-    // std::make_unique_for_overwrite doesn't initialize the data, and we're going to overwrite all of it anyway.
-    std::unique_ptr<ChunkData> blocks = std::make_unique_for_overwrite<ChunkData>();
+    // zth::make_unique_for_overwrite doesn't initialize the data, and we're going to overwrite all of it anyway.
+    zth::UniquePtr<ChunkData> blocks = zth::make_unique_for_overwrite<ChunkData>();
     std::mdspan view{ blocks->data(), chunk_size.x, chunk_size.y, chunk_size.z };
 
     auto chunk_start_x = Chunk::to_world_x(position.x);
