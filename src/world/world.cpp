@@ -147,6 +147,6 @@ auto World::create_chunk_entity(const Chunk& chunk, ChunkPosition position) -> v
     auto world_position = glm::vec3{ Chunk::to_world_x(position.x), 0.0f, Chunk::to_world_z(position.z) };
     entity.transform().set_translation(world_position);
 
-    entity.emplace_or_replace<zth::MeshComponent>(chunk.mesh());
+    entity.emplace_or_replace<zth::QuadMeshComponent>(chunk.mesh());
     entity.emplace_or_replace<zth::MaterialComponent>(_chunk_material);
 }

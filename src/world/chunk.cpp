@@ -6,25 +6,7 @@
 
 namespace {
 
-constexpr usize indices_per_quad = 6;
-constexpr usize vertices_per_quad = 4;
-constexpr std::array<u32, indices_per_quad> single_quad_indices = { 0, 1, 2, 0, 2, 3 };
-
-auto generate_quad_indices(u32 quad_count) -> zth::Vector<u32>
-{
-    zth::Vector<u32> result;
-    result.reserve(static_cast<usize>(quad_count) * indices_per_quad);
-
-    for (u32 i = 0; i < quad_count; i++)
-    {
-        for (auto index : single_quad_indices)
-            result.push_back(index + i * vertices_per_quad);
-    }
-
-    return result;
-}
-
-zth::Vector<u32> quad_indices = generate_quad_indices(blocks_in_chunk * 6); // 6 faces per block.
+constexpr usize vertices_per_face = 4;
 
 struct Face
 {
@@ -164,7 +146,7 @@ auto append_single_face_vertices(ChunkMesh& mesh, Block block, BlockFacing facin
     auto tex_coords = get_block_texture_coordinates(block, facing);
     auto& face = get_face(facing);
 
-    for (usize i = 0; i < vertices_per_quad; i++)
+    for (usize i = 0; i < vertices_per_face; i++)
     {
         zth::StandardVertex vertex = {
             .local_position = face[i] + glm::vec3{ coordinates },
@@ -230,10 +212,7 @@ auto Chunk::generate_mesh() const -> ChunkMesh
 
 auto Chunk::upload_mesh(const ChunkMesh& mesh) -> void
 {
-    usize indices_count = mesh.faces * indices_per_quad;
-    ZTH_ASSERT(indices_count <= quad_indices.size());
-    std::span indices{ quad_indices.begin(), std::next(quad_indices.begin(), static_cast<isize>(indices_count)) };
-    _mesh = std::make_shared<zth::Mesh>(mesh.vertices, zth::StandardVertex::layout, indices);
+    _mesh = std::make_shared<zth::QuadMesh>(mesh.vertices, zth::StandardVertex::layout);
 }
 
 auto Chunk::at(glm::ivec3 coordinates) const -> zth::Optional<Block>

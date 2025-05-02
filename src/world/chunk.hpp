@@ -76,7 +76,7 @@ public:
 
 private:
     zth::UniquePtr<ChunkData> _blocks;
-    std::shared_ptr<zth::Mesh> _mesh;
+    std::shared_ptr<zth::QuadMesh> _mesh;
 
 private:
     auto visible_faces_for_block(glm::ivec3 coordinates) const -> BlockFacing;
