@@ -3,80 +3,81 @@
 #include <glm/gtx/structured_bindings.hpp>
 
 #include "atlas.hpp"
+#include "quad.hpp"
 
 namespace {
 
-constexpr usize vertices_per_face = 4;
+using QuadVertices = std::array<glm::vec3, vertices_per_quad>;
 
 struct Face
 {
-    glm::vec3 top_left;     // 0
-    glm::vec3 bottom_left;  // 1
-    glm::vec3 bottom_right; // 2
-    glm::vec3 top_right;    // 3
-
+    QuadVertices vertices;
     glm::vec3 normal;
-
-    auto operator[](usize index) const -> glm::vec3
-    {
-        ZTH_ASSERT(index <= 3);
-        return (&top_left)[index];
-    }
 };
 
-constexpr Face backward_face = {
-    .top_left = { 0.0f, 1.0f, 1.0f },
-    .bottom_left = { 0.0f, 0.0f, 1.0f },
-    .bottom_right = { 1.0f, 0.0f, 1.0f },
-    .top_right = { 1.0f, 1.0f, 1.0f },
+// clang-format off
 
+constexpr Face backward_face = {
+    .vertices = {
+        glm::vec3{ 0.0f, 1.0f, 1.0f }, // top-left
+        glm::vec3{ 0.0f, 0.0f, 1.0f }, // bottom-left
+        glm::vec3{ 1.0f, 0.0f, 1.0f }, // bottom-right
+        glm::vec3{ 1.0f, 1.0f, 1.0f }, // top-right
+    },
     .normal = zth::math::world_backward,
 };
 
 constexpr Face forward_face = {
-    .top_left = { 1.0f, 1.0f, 0.0f },
-    .bottom_left = { 1.0f, 0.0f, 0.0f },
-    .bottom_right = { 0.0f, 0.0f, 0.0f },
-    .top_right = { 0.0f, 1.0f, 0.0f },
-
+    .vertices = {
+        glm::vec3{ 1.0f, 1.0f, 0.0f }, // top-left
+        glm::vec3{ 1.0f, 0.0f, 0.0f }, // bottom-left
+        glm::vec3{ 0.0f, 0.0f, 0.0f }, // bottom-right
+        glm::vec3{ 0.0f, 1.0f, 0.0f }, // top-right
+    },
     .normal = zth::math::world_forward,
 };
 
 constexpr Face left_face = {
-    .top_left = { 0.0f, 1.0f, 0.0f },
-    .bottom_left = { 0.0f, 0.0f, 0.0f },
-    .bottom_right = { 0.0f, 0.0f, 1.0f },
-    .top_right = { 0.0f, 1.0f, 1.0f },
-
+    .vertices = {
+        glm::vec3{ 0.0f, 1.0f, 0.0f }, // top-left
+        glm::vec3{ 0.0f, 0.0f, 0.0f }, // bottom-left
+        glm::vec3{ 0.0f, 0.0f, 1.0f }, // bottom-right
+        glm::vec3{ 0.0f, 1.0f, 1.0f }, // top-right
+    },
     .normal = zth::math::world_left,
 };
 
 constexpr Face right_face = {
-    .top_left = { 1.0f, 1.0f, 1.0f },
-    .bottom_left = { 1.0f, 0.0f, 1.0f },
-    .bottom_right = { 1.0f, 0.0f, 0.0f },
-    .top_right = { 1.0f, 1.0f, 0.0f },
-
+    .vertices = {
+        glm::vec3{ 1.0f, 1.0f, 1.0f }, // top-left
+        glm::vec3{ 1.0f, 0.0f, 1.0f }, // bottom-left
+        glm::vec3{ 1.0f, 0.0f, 0.0f }, // bottom-right
+        glm::vec3{ 1.0f, 1.0f, 0.0f }, // top-right
+    },
     .normal = zth::math::world_right,
 };
 
 constexpr Face down_face = {
-    .top_left = { 0.0f, 0.0f, 1.0f },
-    .bottom_left = { 0.0f, 0.0f, 0.0f },
-    .bottom_right = { 1.0f, 0.0f, 0.0f },
-    .top_right = { 1.0f, 0.0f, 1.0f },
-
+    .vertices = {
+        glm::vec3{ 0.0f, 0.0f, 1.0f }, // top-left
+        glm::vec3{ 0.0f, 0.0f, 0.0f }, // bottom-left
+        glm::vec3{ 1.0f, 0.0f, 0.0f }, // bottom-right
+        glm::vec3{ 1.0f, 0.0f, 1.0f }, // top-right
+    },
     .normal = zth::math::world_down,
 };
 
 constexpr Face up_face = {
-    .top_left = { 0.0f, 1.0f, 0.0f },
-    .bottom_left = { 0.0f, 1.0f, 1.0f },
-    .bottom_right = { 1.0f, 1.0f, 1.0f },
-    .top_right = { 1.0f, 1.0f, 0.0f },
-
+    .vertices = {
+        glm::vec3{ 0.0f, 1.0f, 0.0f }, // top-left
+        glm::vec3{ 0.0f, 1.0f, 1.0f }, // bottom-left
+        glm::vec3{ 1.0f, 1.0f, 1.0f }, // bottom-right
+        glm::vec3{ 1.0f, 1.0f, 0.0f }, // top-right
+    },
     .normal = zth::math::world_up,
 };
+
+// clang-format on
 
 constexpr TextureAtlas blocks_texture_atlas{ 4, 4 };
 
@@ -128,10 +129,10 @@ auto append_single_face_vertices(ChunkMesh& mesh, Block block, BlockFacing facin
     auto tex_coords = blocks_texture_atlas[get_block_texture_index(block, facing)];
     auto& face = get_face(facing);
 
-    for (usize i = 0; i < vertices_per_face; i++)
+    for (usize i = 0; i < vertices_per_quad; i++)
     {
         zth::StandardVertex vertex = {
-            .local_position = face[i] + glm::vec3{ coordinates },
+            .local_position = face.vertices[i] + glm::vec3{ coordinates },
             .normal = face.normal,
             .tex_coords = tex_coords[i],
         };
