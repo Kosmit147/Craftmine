@@ -2,7 +2,7 @@
 
 #include <glm/gtx/structured_bindings.hpp>
 
-#include <print>
+#include "atlas.hpp"
 
 namespace {
 
@@ -17,13 +17,7 @@ struct Face
 
     glm::vec3 normal;
 
-    auto operator[](usize index) -> glm::vec3&
-    {
-        ZTH_ASSERT(index <= 3);
-        return (&top_left)[index];
-    }
-
-    auto operator[](usize index) const -> const glm::vec3&
+    auto operator[](usize index) const -> glm::vec3
     {
         ZTH_ASSERT(index <= 3);
         return (&top_left)[index];
@@ -84,39 +78,27 @@ constexpr Face up_face = {
     .normal = zth::math::world_up,
 };
 
-struct BlockTextureCoordinates
-{
-    glm::vec2 top_left;     // 0
-    glm::vec2 bottom_left;  // 1
-    glm::vec2 bottom_right; // 2
-    glm::vec2 top_right;    // 3
+constexpr TextureAtlas blocks_texture_atlas{ 4, 4 };
 
-    auto operator[](usize index) -> glm::vec2&
+auto get_block_texture_index(Block block, BlockFacing facing) -> usize
+{
+    (void)facing; // @todo: Facing.
+
+    switch (block)
     {
-        ZTH_ASSERT(index <= 3);
-        return (&top_left)[index];
+        using enum Block;
+    case Grass:
+        if (facing == Facing_Backward || facing == Facing_Forward || facing == Facing_Left || facing == Facing_Right)
+            return 1;
+        return 2;
+    case Dirt:
+        return 3;
+    case Stone:
+        return 0;
     }
 
-    auto operator[](usize index) const -> const glm::vec2&
-    {
-        ZTH_ASSERT(index <= 3);
-        return (&top_left)[index];
-    }
-};
-
-auto get_block_texture_coordinates(Block block, BlockFacing facing) -> BlockTextureCoordinates
-{
-    (void)block;
-    (void)facing;
-
-    // @todo: Implement this function.
-
-    return BlockTextureCoordinates{
-        .top_left = glm::vec2{ 0.0f },
-        .bottom_left = glm::vec2{ 0.0f },
-        .bottom_right = glm::vec2{ 0.0f },
-        .top_right = glm::vec2{ 0.0f },
-    };
+    ZTH_ASSERT(false);
+    std::unreachable();
 }
 
 auto get_face(BlockFacing facing) -> const Face&
@@ -143,7 +125,7 @@ auto get_face(BlockFacing facing) -> const Face&
 
 auto append_single_face_vertices(ChunkMesh& mesh, Block block, BlockFacing facing, glm::ivec3 coordinates) -> void
 {
-    auto tex_coords = get_block_texture_coordinates(block, facing);
+    auto tex_coords = blocks_texture_atlas[get_block_texture_index(block, facing)];
     auto& face = get_face(facing);
 
     for (usize i = 0; i < vertices_per_face; i++)

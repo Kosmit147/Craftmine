@@ -13,6 +13,7 @@ public:
 private:
     static std::unordered_map<ChunkPosition, Chunk> _world;
 
+    static std::shared_ptr<zth::gl::Texture2D> _blocks_texture;
     static std::shared_ptr<zth::Material> _chunk_material;
     static zth::Scene* _scene;
 

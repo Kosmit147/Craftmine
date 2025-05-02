@@ -22,6 +22,8 @@ add_executable(
 	"src/world/chunk.cpp"
 	"src/world/world.cpp"
 	"src/application.cpp"
+	"src/assets.cpp"
+	"src/atlas.cpp"
 	"src/main_layer.cpp"
 	"src/main_scene.cpp"
 )
@@ -39,5 +41,7 @@ target_precompile_headers(craftmine PRIVATE "src/pch.hpp")
 set_property(TARGET craftmine PROPERTY COMPILE_WARNING_AS_ERROR On)
 
 add_subdirectory("dependencies/Zenith")
+
+b_embed(craftmine "assets/textures/blocks.png")
 
 target_link_libraries(craftmine PRIVATE zenith)

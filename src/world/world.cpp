@@ -2,14 +2,19 @@
 
 #include <future>
 
+#include "assets.hpp"
+
 std::unordered_map<ChunkPosition, Chunk> World::_world;
+std::shared_ptr<zth::gl::Texture2D> World::_blocks_texture;
 std::shared_ptr<zth::Material> World::_chunk_material;
 zth::Scene* World::_scene = nullptr;
 
 auto World::init(zth::Scene& scene) -> void
 {
     _scene = &scene;
-    _chunk_material = std::make_shared<zth::Material>();
+    _blocks_texture = std::make_shared<zth::gl::Texture2D>(zth::gl::Texture2D::from_file_data(
+        blocks_texture_data, zth::gl::TextureParams{ .mag_filter = zth::gl::TextureMagFilter::nearest }));
+    _chunk_material = std::make_shared<zth::Material>(zth::Material{ .diffuse_map = _blocks_texture });
 
     generate(50, 50);
 }
