@@ -13,8 +13,8 @@ public:
           _col_step(1.0f / static_cast<float>(_cols))
     {}
 
-    auto operator[](usize index) const -> QuadTextureCoordinates;
-    auto operator[](usize row, usize col) const -> QuadTextureCoordinates;
+    [[nodiscard]] auto operator[](usize index) const -> QuadTextureCoordinates;
+    [[nodiscard]] auto operator[](usize row, usize col) const -> QuadTextureCoordinates;
 
 private:
     usize _rows = 0;

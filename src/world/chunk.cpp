@@ -81,10 +81,8 @@ constexpr Face up_face = {
 
 constexpr TextureAtlas blocks_texture_atlas{ 4, 4 };
 
-auto get_block_texture_index(Block block, BlockFacing facing) -> usize
+[[nodiscard]] auto get_block_texture_index(Block block, BlockFacing facing) -> usize
 {
-    (void)facing; // @todo: Facing.
-
     switch (block)
     {
         using enum Block;
@@ -102,7 +100,7 @@ auto get_block_texture_index(Block block, BlockFacing facing) -> usize
     std::unreachable();
 }
 
-auto get_face(BlockFacing facing) -> const Face&
+[[nodiscard]] auto get_face(BlockFacing facing) -> const Face&
 {
     switch (facing)
     {

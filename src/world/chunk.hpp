@@ -24,8 +24,10 @@ enum BlockFacing : u8
     Facing_Up = 1 << 5,
 };
 
+// clang-format off
 inline auto operator|=(BlockFacing& lhs, BlockFacing rhs) -> BlockFacing& { return lhs = static_cast<BlockFacing>(lhs | rhs); }
 inline auto operator&=(BlockFacing& lhs, BlockFacing rhs) -> BlockFacing& { return lhs = static_cast<BlockFacing>(lhs & rhs); }
+// clang-format on
 
 constexpr glm::ivec3 chunk_size{ 16, 256, 16 };
 constexpr i32 blocks_in_chunk = chunk_size.x * chunk_size.y * chunk_size.z;
@@ -42,8 +44,8 @@ template<> struct std::hash<ChunkPosition>
 {
     auto operator()(const ChunkPosition& pos) const noexcept -> std::size_t
     {
-        auto h1 = std::hash<unsigned int>{}(pos.x);
-        auto h2 = std::hash<unsigned int>{}(pos.z);
+        auto h1 = std::hash<i32>{}(pos.x);
+        auto h2 = std::hash<i32>{}(pos.z);
 
         // Similar to boost::hash_combine.
         return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
@@ -66,26 +68,26 @@ public:
     ZTH_NO_COPY(Chunk)
     ZTH_DEFAULT_MOVE(Chunk)
 
-    auto generate_mesh() const -> ChunkMesh;
+    [[nodiscard]] auto generate_mesh() const -> ChunkMesh;
     auto upload_mesh(const ChunkMesh& mesh) -> void;
 
-    auto at(glm::ivec3 coordinates) const -> zth::Optional<Block>;
-    auto operator[](glm::ivec3 coordinates) -> Block&;
-    auto operator[](glm::ivec3 coordinates) const -> const Block&;
+    [[nodiscard]] auto at(glm::ivec3 coordinates) const -> zth::Optional<Block>;
+    [[nodiscard]] auto operator[](glm::ivec3 coordinates) -> Block&;
+    [[nodiscard]] auto operator[](glm::ivec3 coordinates) const -> const Block&;
 
-    static auto to_world_x(i32 x) -> i32;
-    static auto to_world_z(i32 z) -> i32;
+    [[nodiscard]] static auto to_world_x(i32 x) -> i32;
+    [[nodiscard]] static auto to_world_z(i32 z) -> i32;
 
-    auto mesh() const -> const auto& { return _mesh; }
+    [[nodiscard]] auto mesh() const -> const auto& { return _mesh; }
 
 private:
     zth::UniquePtr<ChunkData> _blocks;
     std::shared_ptr<zth::QuadMesh> _mesh;
 
 private:
-    auto visible_faces_for_block(glm::ivec3 coordinates) const -> BlockFacing;
+    [[nodiscard]] auto visible_faces_for_block(glm::ivec3 coordinates) const -> BlockFacing;
 
-    static auto valid_coordinates(glm::ivec3 coordinates) -> bool;
+    [[nodiscard]] static auto valid_coordinates(glm::ivec3 coordinates) -> bool;
 };
 
 class ChunkGenerator
@@ -98,8 +100,8 @@ public:
 public:
     ChunkGenerator() = delete;
 
-    static auto generate(ChunkPosition position) -> zth::UniquePtr<ChunkData>;
+    [[nodiscard]] static auto generate(ChunkPosition position) -> zth::UniquePtr<ChunkData>;
 
 private:
-    static auto get_height(i32 world_x, i32 world_z) -> i32;
+    [[nodiscard]] static auto get_height(i32 world_x, i32 world_z) -> i32;
 };
