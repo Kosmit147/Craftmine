@@ -16,4 +16,6 @@ private:
 
 private:
     auto on_load() -> void override;
+    auto on_update() -> void override;
+    auto on_unload() -> void override;
 };

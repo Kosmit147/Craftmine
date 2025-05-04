@@ -29,6 +29,8 @@ inline auto operator|=(BlockFacing& lhs, BlockFacing rhs) -> BlockFacing& { retu
 inline auto operator&=(BlockFacing& lhs, BlockFacing rhs) -> BlockFacing& { return lhs = static_cast<BlockFacing>(lhs & rhs); }
 // clang-format on
 
+[[nodiscard]] auto side_facing(BlockFacing facing) -> bool;
+
 constexpr glm::ivec3 chunk_size{ 16, 256, 16 };
 constexpr i32 blocks_in_chunk = chunk_size.x * chunk_size.y * chunk_size.z;
 
@@ -42,7 +44,7 @@ struct ChunkPosition
 
 template<> struct std::hash<ChunkPosition>
 {
-    auto operator()(const ChunkPosition& pos) const noexcept -> std::size_t
+    [[nodiscard]] auto operator()(const ChunkPosition& pos) const noexcept -> std::size_t
     {
         auto h1 = std::hash<i32>{}(pos.x);
         auto h2 = std::hash<i32>{}(pos.z);
@@ -52,28 +54,48 @@ template<> struct std::hash<ChunkPosition>
     }
 };
 
-using ChunkData = std::array<Block, blocks_in_chunk>;
-
-struct ChunkMesh
+// ChunkData acts as a non-copyable reference type (it's only a pointer to the actual data).
+class ChunkData
 {
-    zth::Vector<zth::StandardVertex> vertices;
-    usize faces;
+public:
+    using BlocksArray = std::array<Block, blocks_in_chunk>;
+
+    explicit ChunkData() = default;
+    explicit ChunkData(zth::UniquePtr<BlocksArray>&& data);
+
+    ZTH_NO_COPY(ChunkData)
+    ZTH_DEFAULT_MOVE(ChunkData)
+
+    ~ChunkData() = default;
+
+    [[nodiscard]] auto at(glm::ivec3 coordinates) -> Optional<Reference<Block>>;
+    [[nodiscard]] auto at(glm::ivec3 coordinates) const -> Optional<Reference<const Block>>;
+    [[nodiscard]] auto operator[](glm::ivec3 coordinates) -> Block&;
+    [[nodiscard]] auto operator[](glm::ivec3 coordinates) const -> const Block&;
+
+    [[nodiscard]] auto generate_mesh() const -> zth::Vector<zth::StandardVertex>;
+
+    [[nodiscard]] static auto valid_coordinates(glm::ivec3 coordinates) -> bool;
+
+private:
+    zth::UniquePtr<BlocksArray> _data = zth::make_unique_for_overwrite<BlocksArray>();
+
+private:
+    [[nodiscard]] auto visible_faces_for_block(glm::ivec3 coordinates) const -> BlockFacing;
 };
 
 class Chunk
 {
 public:
-    explicit Chunk(zth::UniquePtr<ChunkData>&& blocks);
+    explicit Chunk(ChunkData&& data);
 
     ZTH_NO_COPY(Chunk)
     ZTH_DEFAULT_MOVE(Chunk)
 
-    [[nodiscard]] auto generate_mesh() const -> ChunkMesh;
-    auto upload_mesh(const ChunkMesh& mesh) -> void;
+    ~Chunk() = default;
 
-    [[nodiscard]] auto at(glm::ivec3 coordinates) const -> zth::Optional<Block>;
-    [[nodiscard]] auto operator[](glm::ivec3 coordinates) -> Block&;
-    [[nodiscard]] auto operator[](glm::ivec3 coordinates) const -> const Block&;
+    // This must be done on the main thread.
+    auto upload_mesh(const zth::Vector<zth::StandardVertex>& mesh) -> void;
 
     [[nodiscard]] static auto to_world_x(i32 x) -> i32;
     [[nodiscard]] static auto to_world_z(i32 z) -> i32;
@@ -81,13 +103,8 @@ public:
     [[nodiscard]] auto mesh() const -> const auto& { return _mesh; }
 
 private:
-    zth::UniquePtr<ChunkData> _blocks;
+    ChunkData _data;
     std::shared_ptr<zth::QuadMesh> _mesh;
-
-private:
-    [[nodiscard]] auto visible_faces_for_block(glm::ivec3 coordinates) const -> BlockFacing;
-
-    [[nodiscard]] static auto valid_coordinates(glm::ivec3 coordinates) -> bool;
 };
 
 class ChunkGenerator
@@ -100,7 +117,7 @@ public:
 public:
     ChunkGenerator() = delete;
 
-    [[nodiscard]] static auto generate(ChunkPosition position) -> zth::UniquePtr<ChunkData>;
+    [[nodiscard]] static auto generate(ChunkPosition position) -> ChunkData;
 
 private:
     [[nodiscard]] static auto get_height(i32 world_x, i32 world_z) -> i32;

@@ -22,5 +22,15 @@ auto MainScene::on_load() -> void
     _player.transform().set_translation(glm::vec3{ 0.0f, 120.0f, 0.0f });
     _player.transform().set_direction(zth::math::world_backward);
 
-    World::init(*this);
+    World::init(25);
+}
+
+auto MainScene::on_update() -> void
+{
+    World::update(*this);
+}
+
+auto MainScene::on_unload() -> void
+{
+    World::shut_down();
 }
