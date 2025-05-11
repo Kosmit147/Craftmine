@@ -1,3 +1,3 @@
 #pragma once
 
-extern const std::span<const std::uint8_t> blocks_texture_data;
+extern const std::span<const std::byte> blocks_texture_data;

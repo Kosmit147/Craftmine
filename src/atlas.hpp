@@ -1,18 +1,8 @@
 #pragma once
 
-struct TextureCoordinates
-{
-    glm::vec2 top_left;     // 0
-    glm::vec2 bottom_left;  // 1
-    glm::vec2 bottom_right; // 2
-    glm::vec2 top_right;    // 3
+#include "quad.hpp"
 
-    auto operator[](usize index) const -> glm::vec2
-    {
-        ZTH_ASSERT(index <= 3);
-        return (&top_left)[index];
-    }
-};
+using QuadTextureCoordinates = std::array<glm::vec2, vertices_per_quad>;
 
 class TextureAtlas
 {
@@ -23,8 +13,8 @@ public:
           _col_step(1.0f / static_cast<float>(_cols))
     {}
 
-    auto operator[](usize index) const -> TextureCoordinates;
-    auto operator[](usize row, usize col) const -> TextureCoordinates;
+    [[nodiscard]] auto operator[](usize index) const -> QuadTextureCoordinates;
+    [[nodiscard]] auto operator[](usize row, usize col) const -> QuadTextureCoordinates;
 
 private:
     usize _rows = 0;

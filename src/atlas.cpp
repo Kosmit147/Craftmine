@@ -1,6 +1,6 @@
 #include "atlas.hpp"
 
-auto TextureAtlas::operator[](usize index) const -> TextureCoordinates
+auto TextureAtlas::operator[](usize index) const -> QuadTextureCoordinates
 {
     auto row = index / _cols;
     auto col = index % _cols;
@@ -8,7 +8,7 @@ auto TextureAtlas::operator[](usize index) const -> TextureCoordinates
     return operator[](row, col);
 }
 
-auto TextureAtlas::operator[](usize row, usize col) const -> TextureCoordinates
+auto TextureAtlas::operator[](usize row, usize col) const -> QuadTextureCoordinates
 {
     ZTH_ASSERT(row < _rows && col < _cols);
 
@@ -16,13 +16,13 @@ auto TextureAtlas::operator[](usize row, usize col) const -> TextureCoordinates
 
     auto x1 = static_cast<float>(col) * _col_step;
     auto x2 = static_cast<float>(col + 1) * _col_step;
-    auto y1 = static_cast<float>(row) * _row_step;
-    auto y2 = static_cast<float>(row + 1) * _row_step;
+    auto y1 = static_cast<float>(row + 1) * _row_step;
+    auto y2 = static_cast<float>(row) * _row_step;
 
-    return TextureCoordinates{
-        .top_left = glm::vec2{ x1, y1 },
-        .bottom_left = glm::vec2{ x1, y2 },
-        .bottom_right = glm::vec2{ x2, y2 },
-        .top_right = glm::vec2{ x2, y1 },
+    return QuadTextureCoordinates{
+        glm::vec2{ x1, y1 }, // top-left
+        glm::vec2{ x1, y2 }, // bottom-left
+        glm::vec2{ x2, y2 }, // bottom-right
+        glm::vec2{ x2, y1 }, // top-right
     };
 }

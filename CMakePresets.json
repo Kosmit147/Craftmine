@@ -22,28 +22,65 @@
         "rhs": "Windows"
       }
     },
+    // The configurations are the same as the ones that Zenith uses.
     {
       "name": "x64-debug",
       "displayName": "x64-debug",
-      "description": "Target Windows (64-bit) with the Visual Studio development environment. (Debug)",
+      "description": "Debug build.",
       "inherits": "windows-base",
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ZTH_ASSERTIONS": "ON",
+        "ZTH_GL_DEBUG": "ON",
+        "ZTH_DEBUG_LOGGING": "ON"
+      }
+    },
+    {
+      "name": "x64-optimized-debug",
+      "displayName": "x64-optimized-debug",
+      "description": "Debug build with optimizations enabled.",
+      "inherits": "windows-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "ZTH_ASSERTIONS": "ON",
+        "ZTH_GL_DEBUG": "ON",
+        "ZTH_DEBUG_LOGGING": "ON"
+      }
+    },
+    {
+      "name": "x64-development",
+      "displayName": "x64-development",
+      "description": "Optimized build with some debugging features enabled.",
+      "inherits": "windows-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "ZTH_ASSERTIONS": "OFF",
+        "ZTH_GL_DEBUG": "ON",
+        "ZTH_DEBUG_LOGGING": "ON"
+      }
+    },
+    {
+      "name": "x64-release-with-deb-info",
+      "displayName": "x64-release-with-deb-info",
+      "description": "Release build with debug information.",
+      "inherits": "windows-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "ZTH_ASSERTIONS": "OFF",
+        "ZTH_GL_DEBUG": "OFF",
+        "ZTH_DEBUG_LOGGING": "OFF"
+      }
     },
     {
       "name": "x64-release",
       "displayName": "x64-release",
-      "description": "Target Windows (64-bit) with the Visual Studio development environment. (RelWithDebInfo)",
-      "inherits": "windows-base",
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
-    },
-    {
-      "name": "x64-dist",
-      "displayName": "x64-dist",
-      "description": "Target Windows (64-bit) with the Visual Studio development environment with all debugging features stripped. (Release)",
+      "description": "Release build without debug information.",
       "inherits": "windows-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "ZTH_DIST_BUILD": "ON"
+        "ZTH_ASSERTIONS": "OFF",
+        "ZTH_GL_DEBUG": "OFF",
+        "ZTH_DEBUG_LOGGING": "OFF"
       }
     }
   ]
