@@ -129,9 +129,9 @@ auto append_single_face_vertices(zth::Vector<zth::StandardVertex>& vertices, Blo
     for (usize i = 0; i < vertices_per_quad; i++)
     {
         vertices.push_back(zth::StandardVertex{
-            .local_position = face.vertices[i] + glm::vec3{ coordinates },
+            .position = face.vertices[i] + glm::vec3{ coordinates },
             .normal = face.normal,
-            .tex_coords = tex_coords[i],
+            .uv = tex_coords[i],
         });
     }
 }
@@ -483,7 +483,7 @@ Chunk::Chunk(std::shared_ptr<ChunkData>&& data) : _data{ std::move(data) } {}
 
 auto Chunk::upload_mesh(const ChunkMesh& mesh) -> void
 {
-    _mesh = std::make_shared<zth::QuadMesh>(mesh.vertices, zth::StandardVertex::layout);
+    _mesh = std::make_shared<zth::QuadMesh<>>(mesh.vertices);
 }
 
 auto Chunk::to_world_x(i32 x) -> i32
