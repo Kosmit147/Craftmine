@@ -28,5 +28,5 @@ const zth::ApplicationSpec application_spec = {
 Application::Application() : zth::Application(application_spec)
 {
     push_layer(zth::make_unique<MainLayer>());
-    zth::SceneManager::queue_scene(zth::make_unique<MainScene>());
+    zth::SceneManager::queue_scene<MainScene>();
 }

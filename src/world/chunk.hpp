@@ -144,9 +144,8 @@ public:
 private:
     std::shared_ptr<ChunkData> _data;
 
-    // @todo: Fix this hack.
-    std::shared_ptr<zth::QuadMesh> _mesh =
-        std::make_shared<zth::QuadMesh>(std::array{ zth::StandardVertex{} }, zth::StandardVertex::layout);
+    // @todo: Fix this hack; QuadMesh should have a default constructor.
+    std::shared_ptr<zth::Mesh> _mesh = std::make_shared<zth::QuadMesh<>>(std::array{ zth::StandardVertex{} });
 };
 
 class ChunkGenerator
