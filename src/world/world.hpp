@@ -18,22 +18,31 @@
 // costly at all, so it doesn't seem worth it to make that multithreaded.
 //
 // During step 2, the mesh generation function needs to access neighboring chunks to determine whether the outer faces
-// of the chunk's blocks are visible. This means that during that time the write access to the chunk map needs to be
-// locked to the thread that performs the mesh generation, because adding a chunk on another thread could cause a
-// rehash, which would cause the references to chunks in that map to become invalid.
+// of the chunk's exterior blocks are visible.
 
-struct NewChunkParams
+struct GenerateChunkResults
 {
     ChunkPosition position;
-    ChunkData chunk_data;
-    zth::Vector<zth::StandardVertex> mesh;
+    std::shared_ptr<ChunkData> chunk_data;
+};
+
+struct UpdateChunkMeshInputs
+{
+    std::shared_ptr<const ChunkData> chunk_data;
+    NeighboringChunksData neighbors;
+};
+
+struct UpdateChunkMeshResults
+{
+    ChunkPosition position;
+    ChunkMesh mesh;
 };
 
 class World
 {
 public:
-    static const usize max_generate_chunks_tasks;
-    static const usize max_chunks_to_create_each_frame;
+    static const usize max_generate_chunk_tasks;
+    static const usize max_update_chunk_mesh_tasks;
 
 public:
     World() = delete;
@@ -44,9 +53,15 @@ public:
 
 private:
     static std::unordered_map<ChunkPosition, Chunk> _map;
+    static std::unordered_map<ChunkPosition, zth::EntityHandle> _entity_map;
 
+    // These are the requests to generate a new chunk from scratch.
     static std::queue<ChunkPosition> _generate_chunk_requests;
-    static std::queue<std::future<NewChunkParams>> _generate_chunk_tasks;
+    static std::queue<std::future<GenerateChunkResults>> _generate_chunk_tasks;
+
+    // These are the requests to update a chunk's mesh.
+    static std::queue<ChunkPosition> _update_chunk_mesh_requests;
+    static std::queue<std::future<UpdateChunkMeshResults>> _update_chunk_mesh_tasks;
 
     static std::shared_ptr<zth::gl::Texture2D> _blocks_texture;
     static std::shared_ptr<zth::Material> _chunk_material;
@@ -55,6 +70,21 @@ private:
     static inline bool _all_chunks_generated = false;
 
 private:
-    static auto generate_new_chunk(ChunkPosition position) -> NewChunkParams;
+    [[nodiscard]] static auto get_chunk(ChunkPosition position) -> Optional<Reference<Chunk>>;
+    [[nodiscard]] static auto get_chunk_unchecked(ChunkPosition position) noexcept -> Chunk&;
+    [[nodiscard]] static auto get_neighbors(ChunkPosition position) -> NeighboringChunksData;
+
+    [[nodiscard]] static auto get_chunk_entity(ChunkPosition position) -> Optional<zth::EntityHandle>;
+    [[nodiscard]] static auto get_chunk_entity_unchecked(ChunkPosition position) noexcept -> zth::EntityHandle&;
+
+    static auto request_to_generate_new_chunk(ChunkPosition position) -> void;
+    static auto request_to_update_chunk_mesh(ChunkPosition position) -> void;
+    static auto request_to_update_neighboring_chunks_meshes(ChunkPosition position) -> void;
+
+    [[nodiscard]] static auto generate_new_chunk(ChunkPosition position) -> GenerateChunkResults;
+    [[nodiscard]] static auto update_chunk_mesh(ChunkPosition position, const UpdateChunkMeshInputs& inputs)
+        -> UpdateChunkMeshResults;
+
     static auto create_chunk_entity(zth::Scene& scene, const Chunk& chunk, ChunkPosition position) -> void;
+    static auto update_chunk_entity_mesh(const Chunk& chunk, ChunkPosition position) -> void;
 };
