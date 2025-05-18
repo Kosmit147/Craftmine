@@ -19,8 +19,9 @@ endif()
 add_executable(
 	craftmine
 	"src/scripts/player.cpp"
+	"src/scripts/world_manager.cpp"
 	"src/world/chunk.cpp"
-	"src/world/world.cpp"
+	"src/world/generator.cpp"
 	"src/application.cpp"
 	"src/assets.cpp"
 	"src/atlas.cpp"

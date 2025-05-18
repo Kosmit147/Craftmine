@@ -1,15 +1,12 @@
 #include "chunk.hpp"
 
-#include <glm/gtx/structured_bindings.hpp>
-
 #include "atlas.hpp"
-#include "quad.hpp"
 
 namespace {
 
 struct Face
 {
-    std::array<glm::vec3, vertices_per_quad> vertices;
+    std::array<glm::vec3, zth::vertices_per_quad> vertices;
     glm::vec3 normal;
 };
 
@@ -85,7 +82,7 @@ constexpr TextureAtlas blocks_texture_atlas{ 4, 4 };
     {
         using enum BlockType;
     case Grass:
-        if (side_facing(facing))
+        if (is_side_facing(facing))
             return 1;
         return 2;
     case Dirt:
@@ -126,7 +123,7 @@ auto append_single_face_vertices(zth::Vector<zth::StandardVertex>& vertices, Blo
     auto tex_coords = blocks_texture_atlas[get_block_texture_index(block, facing)];
     auto& face = get_face(facing);
 
-    for (usize i = 0; i < vertices_per_quad; i++)
+    for (usize i = 0; i < zth::vertices_per_quad; i++)
     {
         vertices.push_back(zth::StandardVertex{
             .position = face.vertices[i] + glm::vec3{ coordinates },
@@ -163,12 +160,6 @@ auto append_block_vertices(zth::Vector<zth::StandardVertex>& vertices, BlockType
 
 } // namespace
 
-auto side_facing(BlockFacing facing) -> bool
-{
-    constexpr auto side_faces = Facing_Backward | Facing_Forward | Facing_Left | Facing_Right;
-    return facing & side_faces;
-}
-
 auto ChunkData::at(glm::ivec3 coordinates) -> Optional<Reference<BlockType>>
 {
     if (!valid_coordinates(coordinates))
@@ -185,41 +176,41 @@ auto ChunkData::at(glm::ivec3 coordinates) const -> Optional<Reference<const Blo
     return operator[](coordinates);
 }
 
-auto ChunkData::at_exterior(glm::ivec3 coordinates, const NeighboringChunksData& neighbors) const
+auto ChunkData::at_exterior(glm::ivec3 coordinates, const NeighborsArray& neighbors) const
     -> Optional<Reference<const BlockType>>
 {
     auto [x, y, z] = coordinates;
 
-    if (x == -1) // Chunk to the left (-x).
+    if (x == -1)
     {
-        if (!neighbors.left_chunk_data)
+        if (!neighbors[minus_x_idx])
             return nil;
 
-        return neighbors.left_chunk_data->operator[]({ chunk_size.x - 1, y, z });
+        return neighbors[minus_x_idx]->operator[]({ chunk_size.x - 1, y, z });
     }
 
-    if (x == chunk_size.x) // Chunk to the right (+x).
+    if (x == chunk_size.x)
     {
-        if (!neighbors.right_chunk_data)
+        if (!neighbors[plus_x_idx])
             return nil;
 
-        return neighbors.right_chunk_data->operator[]({ 0, y, z });
+        return neighbors[plus_x_idx]->operator[]({ 0, y, z });
     }
 
-    if (z == -1) // Chunk behind (-z).
+    if (z == -1)
     {
-        if (!neighbors.forward_chunk_data)
+        if (!neighbors[minus_z_idx])
             return nil;
 
-        return neighbors.forward_chunk_data->operator[]({ x, y, chunk_size.z - 1 });
+        return neighbors[minus_z_idx]->operator[]({ x, y, chunk_size.z - 1 });
     }
 
-    if (z == chunk_size.z) // Chunk in front (+z).
+    if (z == chunk_size.z)
     {
-        if (!neighbors.backward_chunk_data)
+        if (!neighbors[plus_z_idx])
             return nil;
 
-        return neighbors.backward_chunk_data->operator[]({ x, y, 0 });
+        return neighbors[plus_z_idx]->operator[]({ x, y, 0 });
     }
 
     if (y == -1 || y == chunk_size.y)
@@ -245,11 +236,11 @@ auto ChunkData::operator[](glm::ivec3 coordinates) const -> const BlockType&
     return view[x, y, z];
 }
 
-auto ChunkData::generate_mesh(const NeighboringChunksData& neighbors) const -> ChunkMesh
+auto ChunkData::generate_mesh(const NeighborsArray& neighbors) const -> zth::Vector<zth::StandardVertex>
 {
     // @multithreaded
 
-    ChunkMesh result;
+    zth::Vector<zth::StandardVertex> result;
     // @speed: Check if reserving some space for the vertices here would be good.
 
     append_vertices_for_exterior_blocks(result, neighbors);
@@ -272,7 +263,7 @@ auto ChunkData::valid_coordinates(glm::ivec3 coordinates) -> bool
     return false;
 }
 
-auto ChunkData::visible_faces_for_exterior_block(glm::ivec3 coordinates, const NeighboringChunksData& neighbors) const
+auto ChunkData::visible_faces_for_exterior_block(glm::ivec3 coordinates, const NeighborsArray& neighbors) const
     -> BlockFacing
 {
     ZTH_ASSERT(exterior_block_coordinates(coordinates));
@@ -341,8 +332,8 @@ auto ChunkData::visible_faces_for_interior_block(glm::ivec3 coordinates) const -
     return facing;
 }
 
-auto ChunkData::append_vertices_for_exterior_blocks(ChunkMesh& mesh, const NeighboringChunksData& neighbors) const
-    -> void
+auto ChunkData::append_vertices_for_exterior_blocks(zth::Vector<zth::StandardVertex>& vertices,
+                                                    const NeighborsArray& neighbors) const -> void
 {
     // Backward-facing wall (grasps parts of left, right, top and bottom walls as well).
     // +z
@@ -351,7 +342,7 @@ auto ChunkData::append_vertices_for_exterior_blocks(ChunkMesh& mesh, const Neigh
         constexpr auto ys = std::views::iota(0, chunk_size.y);
         constexpr auto zs = std::views::iota(chunk_size.z - 1, chunk_size.z);
         constexpr auto wall = std::views::cartesian_product(xs, ys, zs);
-        append_vertices_for_wall(mesh, wall, neighbors);
+        append_vertices_for_wall(vertices, wall, neighbors);
     }
 
     // Forward-facing wall (grasps parts of left, right, top and bottom walls as well).
@@ -361,7 +352,7 @@ auto ChunkData::append_vertices_for_exterior_blocks(ChunkMesh& mesh, const Neigh
         constexpr auto ys = std::views::iota(0, chunk_size.y);
         constexpr auto zs = std::views::iota(0, 1);
         constexpr auto wall = std::views::cartesian_product(xs, ys, zs);
-        append_vertices_for_wall(mesh, wall, neighbors);
+        append_vertices_for_wall(vertices, wall, neighbors);
     }
 
     // Left-facing wall (grasps parts of top and bottom walls as well).
@@ -371,7 +362,7 @@ auto ChunkData::append_vertices_for_exterior_blocks(ChunkMesh& mesh, const Neigh
         constexpr auto ys = std::views::iota(0, chunk_size.y);
         constexpr auto zs = std::views::iota(1, chunk_size.z - 1);
         constexpr auto wall = std::views::cartesian_product(xs, ys, zs);
-        append_vertices_for_wall(mesh, wall, neighbors);
+        append_vertices_for_wall(vertices, wall, neighbors);
     }
 
     // Right-facing wall (grasps parts of top and bottom walls as well).
@@ -381,7 +372,7 @@ auto ChunkData::append_vertices_for_exterior_blocks(ChunkMesh& mesh, const Neigh
         constexpr auto ys = std::views::iota(0, chunk_size.y);
         constexpr auto zs = std::views::iota(1, chunk_size.z - 1);
         constexpr auto wall = std::views::cartesian_product(xs, ys, zs);
-        append_vertices_for_wall(mesh, wall, neighbors);
+        append_vertices_for_wall(vertices, wall, neighbors);
     }
 
     // Bottom-facing wall.
@@ -391,7 +382,7 @@ auto ChunkData::append_vertices_for_exterior_blocks(ChunkMesh& mesh, const Neigh
         constexpr auto ys = std::views::iota(0, 1);
         constexpr auto zs = std::views::iota(1, chunk_size.z - 1);
         constexpr auto wall = std::views::cartesian_product(xs, ys, zs);
-        append_vertices_for_wall(mesh, wall, neighbors);
+        append_vertices_for_wall(vertices, wall, neighbors);
     }
 
     // Top-facing wall.
@@ -401,11 +392,11 @@ auto ChunkData::append_vertices_for_exterior_blocks(ChunkMesh& mesh, const Neigh
         constexpr auto ys = std::views::iota(chunk_size.y - 1, chunk_size.y);
         constexpr auto zs = std::views::iota(1, chunk_size.z - 1);
         constexpr auto wall = std::views::cartesian_product(xs, ys, zs);
-        append_vertices_for_wall(mesh, wall, neighbors);
+        append_vertices_for_wall(vertices, wall, neighbors);
     }
 }
 
-auto ChunkData::append_vertices_for_interior_blocks(ChunkMesh& mesh) const -> void
+auto ChunkData::append_vertices_for_interior_blocks(zth::Vector<zth::StandardVertex>& vertices) const -> void
 {
     // We don't need to worry about whether the coordinates of neighboring blocks are correct as we're only handling the
     // interior blocks.
@@ -421,19 +412,19 @@ auto ChunkData::append_vertices_for_interior_blocks(ChunkMesh& mesh) const -> vo
         glm::ivec3 block_coords{ x, y, z };
         auto block = operator[](block_coords);
         auto facing = visible_faces_for_interior_block(block_coords);
-        append_block_vertices(mesh.vertices, block, facing, block_coords);
+        append_block_vertices(vertices, block, facing, block_coords);
     }
 }
 
-auto ChunkData::append_vertices_for_wall(ChunkMesh& mesh, const WallCoordinates& wall,
-                                         const NeighboringChunksData& neighbors) const -> void
+auto ChunkData::append_vertices_for_wall(zth::Vector<zth::StandardVertex>& vertices, const WallCoordinates& wall,
+                                         const NeighborsArray& neighbors) const -> void
 {
     for (const auto [x, y, z] : wall)
     {
         glm::ivec3 block_coords{ x, y, z };
         auto block = operator[](block_coords);
         auto facing = visible_faces_for_exterior_block(block_coords, neighbors);
-        append_block_vertices(mesh.vertices, block, facing, block_coords);
+        append_block_vertices(vertices, block, facing, block_coords);
     }
 }
 
@@ -479,66 +470,22 @@ auto ChunkData::interior_z(i32 z) -> bool
     return z > 0 && z < chunk_size.z - 1;
 }
 
-Chunk::Chunk(std::shared_ptr<ChunkData>&& data) : _data{ std::move(data) } {}
-
-auto Chunk::upload_mesh(const ChunkMesh& mesh) -> void
+auto world_x_to_chunk_x(i32 x) -> i32
 {
-    _mesh = std::make_shared<zth::QuadMesh<>>(mesh.vertices);
+    return x / chunk_size.x;
 }
 
-auto Chunk::to_world_x(i32 x) -> i32
+auto world_z_to_chunk_z(i32 z) -> i32
+{
+    return z / chunk_size.z;
+}
+
+auto chunk_x_to_world_x(i32 x) -> i32
 {
     return x * chunk_size.x;
 }
 
-auto Chunk::to_world_z(i32 z) -> i32
+auto chunk_z_to_world_z(i32 z) -> i32
 {
     return z * chunk_size.z;
-}
-
-auto ChunkGenerator::generate(ChunkPosition position) -> std::shared_ptr<ChunkData>
-{
-    // @multithreaded
-
-    auto chunk_data = std::make_shared_for_overwrite<ChunkData>();
-
-    auto chunk_start_x = Chunk::to_world_x(position.x);
-    auto chunk_start_z = Chunk::to_world_z(position.z);
-
-    // @speed: We're iterating over the blocks in a not cache-efficient way.
-    for (i32 x = 0; x < chunk_size.x; x++)
-    {
-        for (i32 z = 0; z < chunk_size.z; z++)
-        {
-            auto height = get_height(chunk_start_x + x, chunk_start_z + z);
-
-            for (i32 y = 0; y < chunk_size.y; y++)
-            {
-                glm::ivec3 coords{ x, y, z };
-                auto& data = *chunk_data;
-
-                if (y > height)
-                    data[coords] = BlockType::Air;
-                else if (y == height)
-                    data[coords] = BlockType::Grass;
-                else if (y > height - 4)
-                    data[coords] = BlockType::Dirt;
-                else
-                    data[coords] = BlockType::Stone;
-            }
-        }
-    }
-
-    return chunk_data;
-}
-
-auto ChunkGenerator::get_height(i32 world_x, i32 world_z) -> i32
-{
-    glm::vec2 position{ world_x, world_z };
-    position *= scale;
-
-    auto noise = zth::Random::perlin_noise(position) * 0.5f + 0.5f;
-    auto height = std::lerp(min_height, max_height, noise);
-
-    return static_cast<i32>(height * static_cast<float>(chunk_size.y));
 }

@@ -13,9 +13,8 @@ public:
 private:
     zth::EntityHandle _player = create_entity("Player");
     zth::EntityHandle _directional_light = create_entity("Directional Light");
+    zth::EntityHandle _world_manager = create_entity("World Manager");
 
 private:
     auto on_load() -> void override;
-    auto on_update() -> void override;
-    auto on_unload() -> void override;
 };
