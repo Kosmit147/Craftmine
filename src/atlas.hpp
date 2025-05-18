@@ -1,8 +1,6 @@
 #pragma once
 
-#include "quad.hpp"
-
-using QuadTextureCoordinates = std::array<glm::vec2, vertices_per_quad>;
+using QuadTextureCoordinates = std::array<glm::vec2, zth::vertices_per_quad>;
 
 class TextureAtlas
 {
