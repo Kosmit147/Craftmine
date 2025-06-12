@@ -59,8 +59,9 @@ class WorldManager : public zth::Script
 {
 public:
     // @todo: Add player to debug menu.
-    zth::ConstEntityHandle player;
-    i32 distance = 4;
+    zth::EntityHandle player;
+    glm::vec3 starting_player_position{ 0.0f, 300.0f, 0.0f };
+    i32 distance = 3;
 
     usize max_load_chunk_tasks = std::max(std::thread::hardware_concurrency() * 2u, 4u);
     usize max_update_chunk_tasks = max_load_chunk_tasks;
@@ -68,12 +69,16 @@ public:
     usize max_chunks_loaded_each_frame = max_load_chunk_tasks;
     usize max_chunks_updated_each_frame = max_update_chunk_tasks;
 
+    zth::MouseButton destroy_block_button = zth::MouseButton::Left;
+    zth::MouseButton place_block_button = zth::MouseButton::Right;
+
 public:
     explicit WorldManager() = default;
-    explicit WorldManager(zth::ConstEntityHandle player);
+    explicit WorldManager(zth::EntityHandle player);
 
     auto debug_edit() -> void override;
 
+    auto on_event(zth::EntityHandle actor, const zth::Event& event) -> void override;
     auto on_update(zth::EntityHandle actor) -> void override;
 
 private:
@@ -133,6 +138,8 @@ private:
     [[nodiscard]] auto get_neighbors(glm::ivec2 chunk_position) const -> NeighborsArray;
 
     auto clear_world() -> void;
+
+    auto on_mouse_button_pressed_event(zth::EntityHandle actor, const zth::MouseButtonPressedEvent& event) -> void;
 };
 
 } // namespace scripts

@@ -96,4 +96,7 @@ struct ChunkComponent
     std::shared_ptr<ChunkData> data = nullptr;
     NeighborsArray neighbors{};
     glm::ivec2 position{ 0, 0 };
+
+    auto place_block(glm::vec3 world_position) -> void;
+    auto destroy_block(glm::vec3 world_position) -> void;
 };

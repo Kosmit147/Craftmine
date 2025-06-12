@@ -27,6 +27,7 @@ add_executable(
 	"src/atlas.cpp"
 	"src/main_layer.cpp"
 	"src/main_scene.cpp"
+	"src/menu_scene.cpp"
 )
 
 if(CMAKE_CXX_COMPILER_ID MATCHES ".*GNU.*")
@@ -44,5 +45,12 @@ set_property(TARGET craftmine PROPERTY COMPILE_WARNING_AS_ERROR On)
 add_subdirectory("dependencies/Zenith")
 
 b_embed(craftmine "assets/textures/blocks.png")
+b_embed(craftmine "assets/textures/Crosshair.png")
+b_embed(craftmine "assets/textures/ExitButton.png")
+b_embed(craftmine "assets/textures/ExitButtonHover.png")
+b_embed(craftmine "assets/textures/Logo.png")
+# b_embed(craftmine "assets/textures/MenuBackground.png")
+b_embed(craftmine "assets/textures/StartButton.png")
+b_embed(craftmine "assets/textures/StartButtonHover.png")
 
 target_link_libraries(craftmine PRIVATE zenith)

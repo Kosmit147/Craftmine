@@ -1,7 +1,7 @@
 #include "application.hpp"
 
 #include "main_layer.hpp"
-#include "main_scene.hpp"
+#include "menu_scene.hpp"
 
 ZTH_IMPLEMENT_APP(Application)
 
@@ -28,5 +28,5 @@ const zth::ApplicationSpec application_spec = {
 Application::Application() : zth::Application(application_spec)
 {
     (void)push_layer(zth::make_unique<MainLayer>());
-    zth::SceneManager::queue_scene<MainScene>();
+    zth::SceneManager::queue_scene<MenuScene>();
 }

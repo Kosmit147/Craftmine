@@ -8,7 +8,7 @@ namespace scripts {
 using namespace zth::hashed_string_literals;
 using namespace std::chrono_literals;
 
-WorldManager::WorldManager(zth::ConstEntityHandle player) : player{ player } {}
+WorldManager::WorldManager(zth::EntityHandle player) : player{ player } {}
 
 auto WorldManager::debug_edit() -> void
 {
@@ -28,8 +28,44 @@ auto WorldManager::debug_edit() -> void
         clear_world();
 }
 
+void WorldManager::on_event(zth::EntityHandle actor, const zth::Event& event)
+{
+    if (event.type() == zth::EventType::MouseButtonPressed)
+        on_mouse_button_pressed_event(actor, event.mouse_button_pressed_event());
+}
+
 auto WorldManager::on_update([[maybe_unused]] zth::EntityHandle actor) -> void
 {
+    {
+        auto& player_transform = player.transform();
+
+        if (player_transform.translation().y < 0.0f)
+        {
+            player_transform.set_translation(starting_player_position);
+
+            if (auto character_component = player.try_get<zth::CharacterControllerComponent>())
+                zth::Physics::update_character_position(character_component->get().character, starting_player_position);
+        }
+    }
+
+    {
+        auto& transform = player.transform();
+
+        ImGui::Begin("Ray Cast");
+
+        if (auto hit = zth::Physics::ray_cast(transform.translation(), transform.direction() * 1000.0f))
+        {
+            auto [body_id, hit_point] = *hit;
+            auto hit_entity_id = zth::Physics::get_entity(body_id);
+            auto& registry = actor.registry_unchecked();
+            zth::EntityHandle hit_entity{ hit_entity_id, registry };
+            zth::debug::text("Hit entity: {}", hit_entity.tag().tag);
+            zth::debug::text("Hit point: {}", hit_point);
+        }
+
+        ImGui::End();
+    }
+
     auto player_chunk = get_player_chunk();
 
     request_to_load_chunks_around_player(player_chunk);
@@ -309,7 +345,13 @@ auto WorldManager::update_chunk_entity(zth::EntityHandle chunk_entity,
                                        const zth::Vector<zth::StandardVertex>& chunk_mesh) -> void
 {
     ZTH_ASSERT(chunk_entity.valid());
-    chunk_entity.emplace_or_replace<zth::MeshRendererComponent>(std::make_shared<zth::QuadMesh<>>(chunk_mesh));
+    auto mesh = std::make_shared<zth::QuadMesh<>>(chunk_mesh);
+    // @todo: Should probably be erase instead of remove.
+    chunk_entity.remove<zth::MeshRendererComponent>();
+    chunk_entity.remove<zth::MeshColliderComponent>();
+    chunk_entity.emplace<zth::MeshRendererComponent>(mesh);
+    chunk_entity.emplace<zth::MeshColliderComponent>(
+        zth::MeshColliderComponent{ .body_id = zth::physics::BodyId{}, .mesh = mesh });
 }
 
 auto WorldManager::request_to_unload_chunk(glm::ivec2 chunk_position) -> void
@@ -368,6 +410,35 @@ auto WorldManager::clear_world() -> void
 
     _update_chunk_requests.clear();
     _update_chunk_tasks.clear();
+}
+
+auto WorldManager::on_mouse_button_pressed_event(zth::EntityHandle actor, const zth::MouseButtonPressedEvent& event)
+    -> void
+{
+    auto& transform = player.transform();
+    auto direction = transform.direction();
+
+    if (auto hit = zth::Physics::ray_cast(transform.translation(), direction * 15.0f))
+    {
+        auto [body_id, hit_point] = *hit;
+        auto hit_entity_id = zth::Physics::get_entity(body_id);
+        auto& registry = actor.registry_unchecked();
+        zth::EntityHandle hit_entity{ hit_entity_id, registry };
+
+        if (auto chunk_component = hit_entity.try_get<ChunkComponent>())
+        {
+            // If we hit a chunk.
+
+            auto chunk_position = chunk_component->get().position;
+
+            if (event.button == place_block_button)
+                chunk_component->get().place_block(hit_point - direction * 0.001f);
+            else if (event.button == destroy_block_button)
+                chunk_component->get().destroy_block(hit_point + direction * 0.001f);
+
+            request_to_update_chunk_with_priority(chunk_position);
+        }
+    }
 }
 
 } // namespace scripts

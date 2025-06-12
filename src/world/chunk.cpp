@@ -489,3 +489,43 @@ auto chunk_z_to_world_z(i32 z) -> i32
 {
     return z * chunk_size.z;
 }
+
+auto ChunkComponent::place_block(glm::vec3 world_position) -> void
+{
+    glm::ivec3 world_pos{ world_position };
+
+    auto chunk_x = world_x_to_chunk_x(world_pos.x);
+    auto chunk_z = world_z_to_chunk_z(world_pos.z);
+
+    auto chunk_start_x = chunk_x * chunk_size.x;
+    auto chunk_start_z = chunk_z * chunk_size.z;
+
+    auto block_x = world_pos.x - chunk_start_x;
+    auto block_y = static_cast<i32>(world_position.y);
+    auto block_z = world_pos.z - chunk_start_z;
+
+    // @todo: We should make sure the coordinates are valid.
+
+    auto& chunk_data = *data;
+    chunk_data[glm::ivec3{ block_x, block_y, block_z }] = BlockType::Stone;
+}
+
+auto ChunkComponent::destroy_block(glm::vec3 world_position) -> void
+{
+    glm::ivec3 world_pos{ world_position };
+
+    auto chunk_x = world_x_to_chunk_x(world_pos.x);
+    auto chunk_z = world_z_to_chunk_z(world_pos.z);
+
+    auto chunk_start_x = chunk_x * chunk_size.x;
+    auto chunk_start_z = chunk_z * chunk_size.z;
+
+    auto block_x = world_pos.x - chunk_start_x;
+    auto block_y = static_cast<i32>(world_position.y);
+    auto block_z = world_pos.z - chunk_start_z;
+
+    // @todo: We should make sure the coordinates are valid.
+
+    auto& chunk_data = *data;
+    chunk_data[glm::ivec3{ block_x, block_y, block_z }] = BlockType::Air;
+}
